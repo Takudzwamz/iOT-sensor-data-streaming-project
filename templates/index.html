@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IoT Sensor Data Visualization</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Работа с датчиками IoT</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Real-Time Data <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/sensor_historical_data">Historical Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about_project">About Project</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+<div class="container">
+    <h2 class="text-center mt-4">Real-Time Sensor Data</h2>
+    <div class="column">
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Temperature</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Temperature Anomalies</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="temperatureAnomalyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Humidity</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="humidityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Humidity Anomalies</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="humidityAnomalyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Pressure</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="pressureChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Pressure Anomalies</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="pressureAnomalyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer -->
+<footer class="footer mt-5 py-3 bg-light">
+    <div class="container">
+      <span class="text-muted">Работа с датчиками IoT</span>
+    </div>
+  </footer>
+
+<!-- JavaScript Dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+        // Function to create a line chart
+        const createLineChart = (canvasId, label) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                        borderColor: 'rgb(0, 123, 255)',
+                        data: [],
+                        fill: false
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: label
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Time'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Value'
+                            }
+                        }]
+                    }
+                }
+            });
+        };
+
+        // Function to create a bar chart
+        const createBarChart = (canvasId, label) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                    borderRadius: 5,
+                        data: []
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: label
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Time'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Value'
+                            }
+                        }]
+                    }
+                }
+            });
+        };
+
+        // Create line charts for sensor data
+        const temperatureChart = createLineChart('temperatureChart', 'Temperature');
+        const humidityChart = createLineChart('humidityChart', 'Humidity');
+        const pressureChart = createLineChart('pressureChart', 'Pressure');
+
+        // Create bar charts for anomalies
+        const temperatureAnomalyChart = createBarChart('temperatureAnomalyChart', 'Temperature Anomalies');
+        const humidityAnomalyChart = createBarChart('humidityAnomalyChart', 'Humidity Anomalies');
+        const pressureAnomalyChart = createBarChart('pressureAnomalyChart', 'Pressure Anomalies');
+
+        // Function to update line charts for sensor data
+        const updateLineChart = (chart, sensorData) => {
+            // Using current time for sensor data as no timestamp is provided
+            const currentTime = new Date().toLocaleTimeString();
+
+            if (chart.data.labels.length === 20) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+
+            chart.data.labels.push(currentTime);
+            chart.data.datasets[0].data.push(sensorData.value);
+            chart.update();
+        };
+
+        // Function to update bar charts for anomaly data
+        const updateBarChart = (chart, anomalyData) => {
+            const formattedTime = new Date(anomalyData.timestamp * 1000).toLocaleTimeString();
+            const anomalyValue = anomalyData.temperature || anomalyData.humidity || anomalyData.pressure; // Assuming one of these keys will be present
+
+            if (chart.data.labels.length === 20) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+
+            chart.data.labels.push(formattedTime);
+            chart.data.datasets[0].data.push(anomalyValue);
+            chart.update();
+        };
+
+        // Listen for sensor data and update line charts
+        socket.on('sensor_data', function(sensorData) {
+            switch (sensorData.type) {
+                case 'temperature':
+                    console.log(sensorData);
+                    updateLineChart(temperatureChart, sensorData);
+                    break;
+                case 'humidity':
+                    console.log(sensorData);
+                    updateLineChart(humidityChart, sensorData);
+                    break;
+                case 'pressure':
+                    console.log(sensorData);
+                    updateLineChart(pressureChart, sensorData);
+                    break;
+            }
+        });
+
+        // Listen for anomaly data and update bar charts
+        socket.on('anomaly_data', function(anomalyData) {
+            switch (anomalyData.type) {
+                case 'temperature':
+                    console.log(anomalyData);
+                    updateBarChart(temperatureAnomalyChart, anomalyData.value);
+                    break;
+                case 'humidity':
+                    console.log(anomalyData);
+                    updateBarChart(humidityAnomalyChart, anomalyData.value);
+                    break;
+                case 'pressure':
+                    console.log(anomalyData);
+                    updateBarChart(pressureAnomalyChart, anomalyData.value);
+                    break;
+            }
+        });
+    });
+</script>
+</body>
+</html>

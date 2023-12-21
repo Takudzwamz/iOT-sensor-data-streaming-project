@@ -1,0 +1,33 @@
+# jobs:
+#     build_and_push_flask:
+#       runs-on: ubuntu-latest
+#       defaults:
+#         run:
+#           working-directory: flask-app-folder
+  
+#       steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+  
+#       - name: Build and push Flask Docker image
+#         run: |
+#           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#           docker build -t ${{ secrets.DOCKER_USERNAME }}/your-flask-app-name:latest .
+#           docker push ${{ secrets.DOCKER_USERNAME }}/your-flask-app-name:latest
+  
+  
+#     deploy_flask:
+#       needs: build_and_push_flask
+#       runs-on: [self-hosted, aws-ec2]
+#       steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+  
+#       - name: Deploy Flask application
+#         run: |
+#           cd path-to-flask-docker-compose
+#           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#           docker pull ${{ secrets.DOCKER_USERNAME }}/your-flask-app-name:latest
+#           docker-compose down
+#           docker-compose up -d
+  

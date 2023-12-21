@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Historical IoT Sensor Data Visualization</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Работа с датчиками IoT</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Real-Time Data <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/sensor_historical_data">Historical Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about_project">About Project</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+<div class="container">
+    <h2 class="text-center mt-4">Historical Sensor Data</h2>
+    
+    <div class="row">
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Temperature Data</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="historicalTemperatureChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Temperature Anomalies</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="temperatureAnomalyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Humidity Data</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="historicalHumidityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Humidity Anomalies</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="humidityAnomalyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Pressure Data</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="historicalPressureChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <h5 class="mt-4 mb-2">Pressure Anomalies</h5>
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="pressureAnomalyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer mt-5 py-3 bg-light">
+    <div class="container">
+      <span class="text-muted">Работа с датчиками IoT</span>
+    </div>
+  </footer>
+
+
+<!-- JavaScript Dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+        // Function to create a line chart
+        const createLineChart = (canvasId, label) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                        borderColor: 'rgb(0, 123, 255)',
+                        data: [],
+                        fill: false
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        decimation: {
+                            enabled: true,
+                            algorithm: 'min-max', // or 'lttb'
+                        },
+                    },
+                    title: {
+                        display: true,
+                        text: label
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            distribution: 'linear',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Time'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Value'
+                            }
+                        }]
+                    }
+                }
+            });
+        };
+
+        // Function to create a bar chart
+        const createBarChart = (canvasId, label) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        data: [],
+                        borderWidth: 2,
+                        borderRadius: 5
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        decimation: {
+                            enabled: true,
+                            algorithm: 'min-max', // or 'lttb'
+                        },
+                    },
+                    title: {
+                        display: true,
+                        text: label
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Time'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Value'
+                            }
+                        }]
+                    }
+                }
+            });
+        };
+
+        // Function to fetch and display historical sensor data
+        const fetchAndDisplaySensorData = (sensorType, chart) => {
+            fetch(`/api/sensor_data/${sensorType}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const formattedTime = new Date(item.timestamp * 1000).toLocaleTimeString();
+                        const sensorValue = item[sensorType]; // Using the specific sensor value
+                        chart.data.labels.push(formattedTime);
+                        chart.data.datasets[0].data.push(sensorValue);
+                    });
+                    chart.update();
+                });
+        };
+
+        // Function to fetch and display anomaly data
+        const fetchAndDisplayAnomalyData = (sensorType, chart) => {
+            fetch(`/api/anomalies/${sensorType}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const formattedTime = new Date(item.timestamp * 1000).toLocaleTimeString();
+                        chart.data.labels.push(formattedTime);
+                        chart.data.datasets[0].data.push(item.value); // Using the 'value' field for anomalies
+                    });
+                    chart.update();
+                });
+        };
+
+        // Function to clear charts and fetch data
+        const refreshData = () => {
+            // Clearing existing data
+            ['historicalTemperatureChart', 'historicalHumidityChart', 'historicalPressureChart', 
+             'temperatureAnomalyChart', 'humidityAnomalyChart', 'pressureAnomalyChart'].forEach(chartId => {
+                const chart = window[chartId];
+                chart.data.labels = [];
+                chart.data.datasets.forEach(dataset => {
+                    dataset.data = [];
+                });
+                chart.update();
+            });
+
+            // Fetching and displaying new data
+            fetchAndDisplaySensorData('temperature', historicalTemperatureChart);
+            fetchAndDisplaySensorData('humidity', historicalHumidityChart);
+            fetchAndDisplaySensorData('pressure', historicalPressureChart);
+            fetchAndDisplayAnomalyData('temperature', temperatureAnomalyChart);
+            fetchAndDisplayAnomalyData('humidity', humidityAnomalyChart);
+            fetchAndDisplayAnomalyData('pressure', pressureAnomalyChart);
+        };
+
+        // Initialize charts for historical sensor data
+        const historicalTemperatureChart = createLineChart('historicalTemperatureChart', 'Temperature');
+        const historicalHumidityChart = createLineChart('historicalHumidityChart', 'Humidity');
+        const historicalPressureChart = createLineChart('historicalPressureChart', 'Pressure');
+
+        // Initialize charts for anomalies
+        const temperatureAnomalyChart = createBarChart('temperatureAnomalyChart', 'Temperature Anomalies');
+        const humidityAnomalyChart = createBarChart('humidityAnomalyChart', 'Humidity Anomalies');
+        const pressureAnomalyChart = createBarChart('pressureAnomalyChart', 'Pressure Anomalies');
+
+        // Store chart references globally for easy access in refreshData
+        window.historicalTemperatureChart = historicalTemperatureChart;
+        window.historicalHumidityChart = historicalHumidityChart;
+        window.historicalPressureChart = historicalPressureChart;
+        window.temperatureAnomalyChart = temperatureAnomalyChart;
+        window.humidityAnomalyChart = humidityAnomalyChart;
+        window.pressureAnomalyChart = pressureAnomalyChart;
+
+        // Initial data fetch
+        refreshData();
+
+        // Set interval to refresh data every 5 minutes
+        setInterval(refreshData, 300000); // 300000 milliseconds = 5 minutes
+    });
+</script>
+
+</body>
+</html>
