@@ -45,11 +45,11 @@ model_pressure = load('./isolation_forest_pressure.joblib')
 
 # Kafka configuration
 kafka_conf = {
-    'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': 'kafka:9092',
     'group.id': 'sensor-group',
     'auto.offset.reset': 'earliest'
 }
-producer = Producer({'bootstrap.servers': 'localhost:9092'})
+producer = Producer({'bootstrap.servers': 'kafka:9092'})
 consumer = Consumer(kafka_conf)
 consumer.subscribe(['sensor_temperature', 'sensor_humidity', 'sensor_pressure'])
 
@@ -153,4 +153,5 @@ if __name__ == '__main__':
     threading.Thread(target=consume_and_process, daemon=True).start()
     threading.Thread(target=publish_sensor_data, daemon=True).start()
     print("Running Flask with SocketIO")
-    socketio.run(app)
+    #socketio.run(app, allow_unsafe_werkzeug=True)
+    socketio.run(app, host='0.0.0.0', port=5000,allow_unsafe_werkzeug=True) 

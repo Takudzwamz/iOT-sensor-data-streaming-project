@@ -19,8 +19,7 @@ instance/
 *.log
 *.sqlite3
 
-# Environment variables
-.env
+
 
 # Compiled files
 *.pyc

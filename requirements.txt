@@ -1,0 +1,10 @@
+Flask
+Flask-Cors
+Flask-SocketIO
+pymongo
+confluent-kafka
+joblib
+python-dotenv
+colorama
+scikit-learn
+gunicorn
