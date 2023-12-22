@@ -154,4 +154,4 @@ if __name__ == '__main__':
     threading.Thread(target=publish_sensor_data, daemon=True).start()
     print("Running Flask with SocketIO")
     #socketio.run(app, allow_unsafe_werkzeug=True)
-    socketio.run(app, host='0.0.0.0', port=80,allow_unsafe_werkzeug=True) 
+    socketio.run(app, host='0.0.0.0', port=5000,allow_unsafe_werkzeug=True) 
